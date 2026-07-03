@@ -122,41 +122,6 @@ positions ──< trip_position_rates >── trips
   sefer ücreti sonradan güncellense bile onaylanmış puantaj tutarları değişmez.
 - Tüm ana tablolarda **soft delete** kullanılır.
 
-## Uygulanan İş Kuralları
-
-Tüm kurallar backend'de (FormRequest + Service katmanı) doğrulanır; frontend
-doğrulamaları yalnızca kullanıcı deneyimi içindir.
-
-- Aynı personel için aynı ay içinde yalnızca bir puantaj oluşturulabilir.
-- Gün alanları, fazla mesai ve eksik mesai negatif olamaz.
-- Gün alanlarının toplamı, ilgili ayın gün sayısını geçemez (28/29/30/31 duyarlı).
-- Bir sefer için en az bir pozisyona mesai ücreti tanımlanmalıdır.
-- Aynı sefer + pozisyon için ikinci kez ücret tanımlanamaz (form + DB unique).
-- Puantaj hesaplanırken personelin **mevcut** pozisyonu esas alınır.
-- Seçilen sefer için pozisyona ücret tanımlı değilse anlamlı bir hata döner
-  (ör. *"İstanbul - Trabzon" seferi için "Muavin" pozisyonuna tanımlı bir mesai
-  ücreti bulunamadı…*). Seed verisindeki İstanbul - Trabzon seferinde Muavin
-  ücreti bilinçli olarak tanımlanmamıştır; bu senaryoyu test etmek için kullanılabilir.
-- Puantaj ekranında mesai ücreti manuel değiştirilemez; birim ücret ve toplam
-  tutar sunucu tarafında hesaplanır (istemciden gelen tutar alanları yok sayılır).
-- Puantaj yazma işlemleri transaction içinde yapılır; ücret hatasında yarım kayıt kalmaz.
-
-## Bonus Özellikler
-
-- **Rol bazlı yetkilendirme:** Admin, Yönetim ekranından yeni rol tanımlayabilir
-  (rol adı + görebileceği sayfalar) ve bu role bağlı kullanıcı açabilir. Sayfa
-  erişimi hem menüde hem backend'de (`page:` middleware) uygulanır.
-- **Excel'e / PDF'e aktarma:** Personel, sefer ve puantaj listelerinde; aktif
-  filtre ve arama çıktıya da uygulanır (Türkçe karakterler için DejaVu Sans gömülü).
-- **Toplu Excel içe aktarma:** Personel ekranında şablon indirme + yükleme; her
-  satır tek tek doğrulanır, hatalı satırlar atlanıp raporlanır, geçerliler eklenir.
-- **Loglama:** Personel/sefer/puantaj üzerindeki oluşturma/güncelleme/silme işlemleri
-  kullanıcı ve alan bazında değişiklikleriyle (`eski → yeni`) kaydedilir; Yönetim
-  ekranındaki "İşlem Kayıtları" sekmesinden görüntülenir (yalnızca admin).
-- **Koyu tema:** Bootstrap 5.3 `data-bs-theme` ile; tercih localStorage'da saklanır.
-- **Gelişmiş filtreleme + sayfalama:** Tüm liste ekranlarında arama, çoklu filtre
-  ve sayfalama.
-
 ## Mimari Notlar
 
 - **Service katmanı:** puantaj hesaplama mantığı `app/Services/TimesheetService.php`
@@ -166,16 +131,3 @@ doğrulamaları yalnızca kullanıcı deneyimi içindir.
 - **API Resource:** JSON çıktıları `app/Http/Resources/` ile standardize edildi.
 - **Domain exception:** eksik ücret tanımı `MissingRateException` ile 422 +
   anlamlı mesaj olarak döner.
-
-## Varsayımlar ve Ek Notlar
-
-- Kimlik doğrulama Sanctum token ile yapılır; tüm API uçları oturum arkasındadır
-  ve sayfa erişimi rol izinlerine göre kısıtlanır.
-- "Aynı ay içinde tek puantaj" kuralı, soft delete ile çakışmaması için DB unique
-  yerine uygulama seviyesinde (FormRequest) doğrulanır; silinen bir puantajın
-  yerine aynı ay için yenisi açılabilir.
-- Görev tarihlerinin puantajın ait olduğu ay içinde olması ek iş kuralı olarak
-  eklendi (gerekçe: aylık puantajın bütünlüğü).
-- Departman ve pozisyonlar normalize edilmiş ayrı tablolardadır; her pozisyon bir
-  departmana bağlıdır (örn. Muavin yalnızca Operasyon'da seçilebilir) ve seeder ile gelir.
-- Frontend'de görünen birim ücret yalnızca önizlemedir; sunucuya gönderilmez.
