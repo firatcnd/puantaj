@@ -6,8 +6,10 @@ export const getToken = () => localStorage.getItem(TOKEN_KEY)
 export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token)
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
 
+// Geliştirmede Vite proxy'si /api'yi Laravel'e yönlendirir.
+// Canlıda VITE_API_URL, deploy edilmiş backend'in tam adresini gösterir (ör. https://.../api).
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { Accept: 'application/json' },
 })
 
