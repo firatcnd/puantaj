@@ -179,4 +179,3 @@ doğrulamaları yalnızca kullanıcı deneyimi içindir.
 - Departman ve pozisyonlar normalize edilmiş ayrı tablolardadır; her pozisyon bir
   departmana bağlıdır (örn. Muavin yalnızca Operasyon'da seçilebilir) ve seeder ile gelir.
 - Frontend'de görünen birim ücret yalnızca önizlemedir; sunucuya gönderilmez.
-- Frontend'de görünen birim ücret yalnızca önizlemedir; sunucuya gönderilmez.
