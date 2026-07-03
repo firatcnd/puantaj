@@ -1,0 +1,140 @@
+/* Renk paleti: https://coolors.co/393e41-d3d0cb-e2c044-587b7f-1e2019 */
+:root {
+  --ink: #1e2019;
+  --charcoal: #393e41;
+  --stone: #d3d0cb;
+  --gold: #e2c044;
+  --teal: #587b7f;
+  --teal-dark: #476568;
+  --surface: #f6f5f3;
+
+  /* Bootstrap tema renklerini palete bağla */
+  --bs-primary: var(--teal);
+  --bs-primary-rgb: 88, 123, 127;
+  --bs-warning: var(--gold);
+  --bs-warning-rgb: 226, 192, 68;
+  --bs-dark: var(--ink);
+  --bs-dark-rgb: 30, 32, 25;
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--ink);
+}
+
+body {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+/* --- Butonlar --- */
+.btn-primary {
+  --bs-btn-bg: var(--teal);
+  --bs-btn-border-color: var(--teal);
+  --bs-btn-hover-bg: var(--teal-dark);
+  --bs-btn-hover-border-color: var(--teal-dark);
+  --bs-btn-active-bg: var(--teal-dark);
+  --bs-btn-active-border-color: var(--teal-dark);
+  --bs-btn-disabled-bg: var(--teal);
+  --bs-btn-disabled-border-color: var(--teal);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--teal);
+  --bs-btn-border-color: var(--teal);
+  --bs-btn-hover-bg: var(--teal);
+  --bs-btn-hover-border-color: var(--teal);
+  --bs-btn-active-bg: var(--teal);
+  --bs-btn-active-border-color: var(--teal);
+}
+
+.btn-warning {
+  --bs-btn-bg: var(--gold);
+  --bs-btn-border-color: var(--gold);
+  --bs-btn-hover-bg: #d4b13a;
+  --bs-btn-hover-border-color: #d4b13a;
+}
+
+/* --- Sidebar --- */
+.app-sidebar {
+  background-color: var(--charcoal);
+  color: var(--stone);
+  min-height: 100vh;
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.app-sidebar .brand {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.app-sidebar .brand .bi {
+  color: var(--gold);
+}
+
+.app-sidebar .nav-link {
+  color: var(--stone);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.app-sidebar .nav-link.active {
+  background-color: var(--gold);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* --- Kartlar / tablolar --- */
+.card {
+  border: none;
+  box-shadow: 0 1px 3px rgba(30, 32, 25, 0.1);
+}
+
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.table thead th {
+  background-color: var(--charcoal);
+  color: var(--stone);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.text-bg-primary {
+  background-color: var(--teal) !important;
+}
+
+.badge.text-bg-warning {
+  background-color: var(--gold) !important;
+  color: var(--ink) !important;
+}
+
+/* Küçük ekranda sidebar üstte yatay menüye dönüşür */
+@media (max-width: 767.98px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .app-sidebar .nav {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+  }
+}
