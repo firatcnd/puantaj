@@ -17,8 +17,7 @@ class TripController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $trips = Trip::with('rates.position')
-            ->search($request->query('search'))
-            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+            ->filter($request->query())
             ->orderBy('name')
             ->paginate($request->integer('per_page', 10));
 

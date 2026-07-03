@@ -8,14 +8,24 @@ use Illuminate\Database\Seeder;
 
 class LookupSeeder extends Seeder
 {
+    /** Departmanlar ve her departmana ait pozisyonlar. */
+    private const STRUCTURE = [
+        'Operasyon' => ['Şoför', 'Host', 'Muavin'],
+        'Filo Yönetimi' => ['Filo Sorumlusu', 'Bakım Teknisyeni'],
+        'İnsan Kaynakları' => ['İK Uzmanı'],
+    ];
+
     public function run(): void
     {
-        foreach (['Operasyon', 'Filo Yönetimi', 'İnsan Kaynakları'] as $name) {
-            Department::firstOrCreate(['name' => $name]);
-        }
+        foreach (self::STRUCTURE as $departmentName => $positions) {
+            $department = Department::firstOrCreate(['name' => $departmentName]);
 
-        foreach (['Şoför', 'Host', 'Muavin'] as $name) {
-            Position::firstOrCreate(['name' => $name]);
+            foreach ($positions as $positionName) {
+                Position::firstOrCreate(
+                    ['name' => $positionName],
+                    ['department_id' => $department->id]
+                );
+            }
         }
     }
 }

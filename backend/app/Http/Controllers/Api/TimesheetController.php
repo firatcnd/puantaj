@@ -23,17 +23,7 @@ class TimesheetController extends Controller
         $timesheets = Timesheet::with(['personnel.department', 'position'])
             ->withCount('entries')
             ->withSum('entries', 'trip_count')
-            ->when($request->query('personnel_id'), fn ($q, $id) => $q->where('personnel_id', $id))
-            ->when($request->query('position_id'), fn ($q, $id) => $q->where('position_id', $id))
-            ->when($request->query('department_id'), fn ($q, $id) => $q->whereHas(
-                'personnel', fn ($sub) => $sub->where('department_id', $id)
-            ))
-            ->when($request->query('year'), fn ($q, $year) => $q->where('year', $year))
-            ->when($request->query('month'), fn ($q, $month) => $q->where('month', $month))
-            ->when($request->query('search'), fn ($q, $term) => $q->whereHas(
-                'personnel', fn ($sub) => $sub->where('full_name', 'like', "%{$term}%")
-                    ->orWhere('registration_no', 'like', "%{$term}%")
-            ))
+            ->filter($request->query())
             ->latest()
             ->paginate($request->integer('per_page', 10));
 

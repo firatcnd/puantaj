@@ -3,7 +3,9 @@ import { Button, Form } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import api, { extractErrorMessage } from '../api.js'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import ExportButtons from '../components/ExportButtons.jsx'
 import Pagination from '../components/Pagination.jsx'
+import TimesheetDetailModal from '../components/TimesheetDetailModal.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { formatCurrency, MONTHS, monthName } from '../utils/format.js'
 
@@ -30,6 +32,8 @@ export default function TimesheetsPage() {
   const [departments, setDepartments] = useState([])
   const [positions, setPositions] = useState([])
   const [deleting, setDeleting] = useState(null)
+  const [viewingId, setViewingId] = useState(null)
+  const closeDetail = useCallback(() => setViewingId(null), [])
 
   const load = useCallback(() => {
     const params = { page }
@@ -52,12 +56,12 @@ export default function TimesheetsPage() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/personnel', { params: { per_page: 500 } }),
+      api.get('/lookup/personnel'),
       api.get('/departments'),
       api.get('/positions'),
     ])
       .then(([people, deps, poss]) => {
-        setPersonnel(people.data.data)
+        setPersonnel(people.data)
         setDepartments(deps.data)
         setPositions(poss.data)
       })
@@ -152,6 +156,16 @@ export default function TimesheetsPage() {
             </div>
           </div>
 
+          <div className="d-flex justify-content-end mb-3">
+            <ExportButtons
+              resource="timesheets"
+              params={Object.fromEntries(
+                Object.entries(filters).filter(([, value]) => value !== '')
+              )}
+              fileBase="puantaj-listesi"
+            />
+          </div>
+
           <div className="table-responsive">
             <table className="table table-hover align-middle">
               <thead>
@@ -192,11 +206,21 @@ export default function TimesheetsPage() {
                     </td>
                     <td className="text-end">
                       <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        className="me-1"
+                        title="Görüntüle"
+                        onClick={() => setViewingId(row.id)}
+                      >
+                        <i className="bi bi-eye" />
+                      </Button>
+                      <Button
                         as={Link}
                         to={`/puantajlar/${row.id}/duzenle`}
                         size="sm"
                         variant="outline-primary"
                         className="me-1"
+                        title="Düzenle"
                       >
                         <i className="bi bi-pencil" />
                       </Button>
@@ -213,6 +237,8 @@ export default function TimesheetsPage() {
           <Pagination meta={meta} onChange={setPage} />
         </div>
       </div>
+
+      <TimesheetDetailModal timesheetId={viewingId} onClose={closeDetail} />
 
       <ConfirmModal
         show={Boolean(deleting)}

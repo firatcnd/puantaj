@@ -16,10 +16,7 @@ class PersonnelController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $personnel = Personnel::with(['department', 'position'])
-            ->search($request->query('search'))
-            ->when($request->query('department_id'), fn ($q, $id) => $q->where('department_id', $id))
-            ->when($request->query('position_id'), fn ($q, $id) => $q->where('position_id', $id))
-            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+            ->filter($request->query())
             ->orderBy('full_name')
             ->paginate($request->integer('per_page', 10));
 

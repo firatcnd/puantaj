@@ -1,0 +1,11 @@
+# IDE / editör
+.vscode/
+.idea/
+*.sublime-*
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+
+# Ortam dosyaları (her iki alt projede kendi .gitignore'ı da vardır)
+**/.env

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Position;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StorePersonnelRequest extends FormRequest
 {
@@ -25,6 +27,21 @@ class StorePersonnelRequest extends FormRequest
             'hire_date' => ['required', 'date', 'before_or_equal:today'],
             'is_active' => ['required', 'boolean'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        // Pozisyon, seçilen departmana ait olmalıdır (örn. İnsan Kaynakları + Muavin olamaz).
+        $validator->after(function (Validator $v) {
+            $position = Position::find($this->input('position_id'));
+
+            if ($position && (int) $position->department_id !== (int) $this->input('department_id')) {
+                $v->errors()->add(
+                    'position_id',
+                    "\"{$position->name}\" pozisyonu seçilen departmana ait değil."
+                );
+            }
+        });
     }
 
     public function attributes(): array

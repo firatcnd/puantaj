@@ -47,13 +47,10 @@ export default function TimesheetFormPage() {
   const [loading, setLoading] = useState(isEdit)
 
   useEffect(() => {
-    Promise.all([
-      api.get('/personnel', { params: { per_page: 500, is_active: 1 } }),
-      api.get('/trips', { params: { per_page: 500, is_active: 1 } }),
-    ])
+    Promise.all([api.get('/lookup/personnel'), api.get('/lookup/trips')])
       .then(([people, tripList]) => {
-        setPersonnel(people.data.data)
-        setTrips(tripList.data.data)
+        setPersonnel(people.data.filter((person) => person.is_active))
+        setTrips(tripList.data.filter((trip) => trip.is_active))
       })
       .catch((error) => notify(extractErrorMessage(error), 'danger'))
   }, [notify])

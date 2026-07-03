@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button, Form, Modal } from 'react-bootstrap'
 import api, { extractErrorMessage } from '../api.js'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import ExportButtons from '../components/ExportButtons.jsx'
 import Pagination from '../components/Pagination.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { formatCurrency } from '../utils/format.js'
@@ -29,16 +30,28 @@ export default function TripsPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [activeFilter, setActiveFilter] = useState('')
+
+  const activeParams = {
+    search: search || undefined,
+    is_active: activeFilter !== '' ? activeFilter : undefined,
+  }
 
   const load = useCallback(() => {
     api
-      .get('/trips', { params: { page, search: search || undefined } })
+      .get('/trips', {
+        params: {
+          page,
+          search: search || undefined,
+          is_active: activeFilter !== '' ? activeFilter : undefined,
+        },
+      })
       .then((response) => {
         setRows(response.data.data)
         setMeta(response.data.meta)
       })
       .catch((error) => notify(extractErrorMessage(error), 'danger'))
-  }, [page, search, notify])
+  }, [page, search, activeFilter, notify])
 
   useEffect(() => {
     load()
@@ -145,8 +158,8 @@ export default function TripsPage() {
 
       <div className="card">
         <div className="card-body">
-          <div className="row mb-3">
-            <div className="col-12 col-md-5 col-lg-4">
+          <div className="row g-2 mb-3">
+            <div className="col-12 col-md-5 col-xl-4">
               <Form.Control
                 placeholder="Sefer adı, kodu veya güzergâh ile ara…"
                 value={search}
@@ -155,6 +168,32 @@ export default function TripsPage() {
                   setPage(1)
                 }}
               />
+            </div>
+            <div className="col-6 col-md-3 col-xl-2">
+              <Form.Select
+                value={activeFilter}
+                onChange={(event) => {
+                  setActiveFilter(event.target.value)
+                  setPage(1)
+                }}
+              >
+                <option value="">Tüm Durumlar</option>
+                <option value="1">Aktif</option>
+                <option value="0">Pasif</option>
+              </Form.Select>
+            </div>
+            <div className="col-6 col-md-4 col-xl-3 d-flex gap-2">
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  setSearch('')
+                  setActiveFilter('')
+                  setPage(1)
+                }}
+              >
+                Temizle
+              </Button>
+              <ExportButtons resource="trips" params={activeParams} fileBase="sefer-listesi" />
             </div>
           </div>
 

@@ -11,9 +11,12 @@ otomatik bulur ve toplam mesai tutarını hesaplar.
 | Katman | Teknoloji |
 |---|---|
 | Backend | Laravel 13 (PHP 8.4), REST API |
+| Kimlik doğrulama | Laravel Sanctum (token) |
 | Frontend | React 19 (Vite) — SPA |
-| UI | Bootstrap 5, react-bootstrap, Bootstrap Icons |
+| UI | Bootstrap 5 (açık/koyu tema), react-bootstrap, Bootstrap Icons |
 | Grafik | Chart.js (react-chartjs-2) |
+| Excel / PDF | maatwebsite/excel, barryvdh/laravel-dompdf |
+| Loglama | spatie/laravel-activitylog |
 | Veritabanı | MySQL 8 / MariaDB (utf8mb4) |
 
 ## Proje Yapısı
@@ -53,12 +56,20 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Veritabanını oluşturup migration ve seeder'ları çalıştırın:
+Veritabanını oluşturun (MySQL/MariaDB):
+
+```sql
+CREATE DATABASE puantaj_sistemi CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Migration ve seeder'ları çalıştırıp sunucuyu başlatın:
 
 ```bash
 php artisan migrate --seed
 php artisan serve             # http://127.0.0.1:8000
 ```
+
+> Backend ve frontend aynı anda çalışmalıdır (iki ayrı terminal).
 
 ### 2. Frontend
 
@@ -73,13 +84,14 @@ Vite dev sunucusu `/api` isteklerini `http://127.0.0.1:8000` adresine proxy'ler
 
 ## Test Kullanıcı Bilgileri
 
-Uygulama gereksinimlerde kimlik doğrulama zorunlu tutulmadığı için şu an girişsiz
-çalışmaktadır. Seeder yine de ileride rol bazlı yetkilendirme eklenmesi için bir
-kullanıcı oluşturur:
+Uygulama, Laravel Sanctum (token) ile korunur; rol bazlı sayfa yetkilendirmesi vardır.
+Admin, **Yönetim** sayfasından yeni rol tanımlayabilir (rol adı + görebileceği sayfalar)
+ve bu role bağlı kullanıcılar (e-posta + şifre) oluşturabilir.
 
-| E-posta | Şifre |
-|---|---|
-| admin@puantaj.test | password |
+| E-posta | Şifre | Rol | Erişim |
+|---|---|---|---|
+| admin@admin.com | 123 | Admin | Tüm sayfalar + Yönetim (rol/kullanıcı) |
+| puantaj@puantaj.test | password | Puantaj Uzmanı | Yalnızca Dashboard ve Puantajlar |
 
 ## Modüller
 
@@ -129,6 +141,22 @@ doğrulamaları yalnızca kullanıcı deneyimi içindir.
   tutar sunucu tarafında hesaplanır (istemciden gelen tutar alanları yok sayılır).
 - Puantaj yazma işlemleri transaction içinde yapılır; ücret hatasında yarım kayıt kalmaz.
 
+## Bonus Özellikler
+
+- **Rol bazlı yetkilendirme:** Admin, Yönetim ekranından yeni rol tanımlayabilir
+  (rol adı + görebileceği sayfalar) ve bu role bağlı kullanıcı açabilir. Sayfa
+  erişimi hem menüde hem backend'de (`page:` middleware) uygulanır.
+- **Excel'e / PDF'e aktarma:** Personel, sefer ve puantaj listelerinde; aktif
+  filtre ve arama çıktıya da uygulanır (Türkçe karakterler için DejaVu Sans gömülü).
+- **Toplu Excel içe aktarma:** Personel ekranında şablon indirme + yükleme; her
+  satır tek tek doğrulanır, hatalı satırlar atlanıp raporlanır, geçerliler eklenir.
+- **Loglama:** Personel/sefer/puantaj üzerindeki oluşturma/güncelleme/silme işlemleri
+  kullanıcı ve alan bazında değişiklikleriyle (`eski → yeni`) kaydedilir; Yönetim
+  ekranındaki "İşlem Kayıtları" sekmesinden görüntülenir (yalnızca admin).
+- **Koyu tema:** Bootstrap 5.3 `data-bs-theme` ile; tercih localStorage'da saklanır.
+- **Gelişmiş filtreleme + sayfalama:** Tüm liste ekranlarında arama, çoklu filtre
+  ve sayfalama.
+
 ## Mimari Notlar
 
 - **Service katmanı:** puantaj hesaplama mantığı `app/Services/TimesheetService.php`
@@ -141,12 +169,14 @@ doğrulamaları yalnızca kullanıcı deneyimi içindir.
 
 ## Varsayımlar ve Ek Notlar
 
-- Gereksinimde kimlik doğrulama zorunlu olmadığı için auth eklenmedi (bonus olan
-  rol bazlı yetkilendirme sonraki iterasyona bırakıldı).
+- Kimlik doğrulama Sanctum token ile yapılır; tüm API uçları oturum arkasındadır
+  ve sayfa erişimi rol izinlerine göre kısıtlanır.
 - "Aynı ay içinde tek puantaj" kuralı, soft delete ile çakışmaması için DB unique
   yerine uygulama seviyesinde (FormRequest) doğrulanır; silinen bir puantajın
   yerine aynı ay için yenisi açılabilir.
 - Görev tarihlerinin puantajın ait olduğu ay içinde olması ek iş kuralı olarak
   eklendi (gerekçe: aylık puantajın bütünlüğü).
-- Departman ve pozisyonlar normalize edilmiş ayrı tablolardadır ve seeder ile gelir.
+- Departman ve pozisyonlar normalize edilmiş ayrı tablolardadır; her pozisyon bir
+  departmana bağlıdır (örn. Muavin yalnızca Operasyon'da seçilebilir) ve seeder ile gelir.
+- Frontend'de görünen birim ücret yalnızca önizlemedir; sunucuya gönderilmez.
 - Frontend'de görünen birim ücret yalnızca önizlemedir; sunucuya gönderilmez.

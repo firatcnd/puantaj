@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button, Form, Modal } from 'react-bootstrap'
 import api, { extractErrorMessage } from '../api.js'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import ExportButtons from '../components/ExportButtons.jsx'
+import PersonnelImportModal from '../components/PersonnelImportModal.jsx'
 import Pagination from '../components/Pagination.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { formatDate } from '../utils/format.js'
@@ -15,6 +17,8 @@ const EMPTY_FORM = {
   is_active: true,
 }
 
+const EMPTY_FILTERS = { department_id: '', position_id: '', is_active: '' }
+
 export default function PersonnelPage() {
   const notify = useToast()
 
@@ -22,6 +26,7 @@ export default function PersonnelPage() {
   const [meta, setMeta] = useState(null)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [departments, setDepartments] = useState([])
   const [positions, setPositions] = useState([])
 
@@ -30,16 +35,33 @@ export default function PersonnelPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [showImport, setShowImport] = useState(false)
+
+  // Export ve listeleme için aktif filtre/arama parametreleri
+  const activeParams = {
+    search: search || undefined,
+    department_id: filters.department_id || undefined,
+    position_id: filters.position_id || undefined,
+    is_active: filters.is_active !== '' ? filters.is_active : undefined,
+  }
 
   const load = useCallback(() => {
     api
-      .get('/personnel', { params: { page, search: search || undefined } })
+      .get('/personnel', {
+        params: {
+          page,
+          search: search || undefined,
+          department_id: filters.department_id || undefined,
+          position_id: filters.position_id || undefined,
+          is_active: filters.is_active !== '' ? filters.is_active : undefined,
+        },
+      })
       .then((response) => {
         setRows(response.data.data)
         setMeta(response.data.meta)
       })
       .catch((error) => notify(extractErrorMessage(error), 'danger'))
-  }, [page, search, notify])
+  }, [page, search, filters, notify])
 
   useEffect(() => {
     load()
@@ -106,21 +128,33 @@ export default function PersonnelPage() {
     setForm((current) => ({
       ...current,
       [field]: field === 'is_active' ? event.target.checked : event.target.value,
+      // Departman değişince önceki pozisyon geçersizleşir; seçim sıfırlanır
+      ...(field === 'department_id' ? { position_id: '' } : {}),
     }))
+
+  // Pozisyonlar seçili departmana göre daraltılır (örn. İK + Muavin engellenir)
+  const departmentPositions = positions.filter(
+    (pos) => pos.department_id === Number(form.department_id)
+  )
 
   return (
     <>
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h4 className="fw-bold mb-0">Personel Yönetimi</h4>
-        <Button onClick={openCreate}>
-          <i className="bi bi-plus-lg me-1" /> Yeni Personel
-        </Button>
+        <div className="d-flex gap-2">
+          <Button variant="outline-primary" onClick={() => setShowImport(true)}>
+            <i className="bi bi-upload me-1" /> Excel İçe Aktar
+          </Button>
+          <Button onClick={openCreate}>
+            <i className="bi bi-plus-lg me-1" /> Yeni Personel
+          </Button>
+        </div>
       </div>
 
       <div className="card">
         <div className="card-body">
-          <div className="row mb-3">
-            <div className="col-12 col-md-5 col-lg-4">
+          <div className="row g-2 mb-3">
+            <div className="col-12 col-md-4 col-xl-3">
               <Form.Control
                 placeholder="Ad soyad veya sicil no ile ara…"
                 value={search}
@@ -129,6 +163,60 @@ export default function PersonnelPage() {
                   setPage(1)
                 }}
               />
+            </div>
+            <div className="col-6 col-md-3 col-xl-2">
+              <Form.Select
+                value={filters.department_id}
+                onChange={(event) => {
+                  setFilters((c) => ({ ...c, department_id: event.target.value }))
+                  setPage(1)
+                }}
+              >
+                <option value="">Tüm Departmanlar</option>
+                {departments.map((dep) => (
+                  <option key={dep.id} value={dep.id}>{dep.name}</option>
+                ))}
+              </Form.Select>
+            </div>
+            <div className="col-6 col-md-3 col-xl-2">
+              <Form.Select
+                value={filters.position_id}
+                onChange={(event) => {
+                  setFilters((c) => ({ ...c, position_id: event.target.value }))
+                  setPage(1)
+                }}
+              >
+                <option value="">Tüm Pozisyonlar</option>
+                {positions.map((pos) => (
+                  <option key={pos.id} value={pos.id}>{pos.name}</option>
+                ))}
+              </Form.Select>
+            </div>
+            <div className="col-6 col-md-2 col-xl-2">
+              <Form.Select
+                value={filters.is_active}
+                onChange={(event) => {
+                  setFilters((c) => ({ ...c, is_active: event.target.value }))
+                  setPage(1)
+                }}
+              >
+                <option value="">Tüm Durumlar</option>
+                <option value="1">Aktif</option>
+                <option value="0">Pasif</option>
+              </Form.Select>
+            </div>
+            <div className="col-6 col-md-4 col-xl-2 d-flex gap-2">
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  setSearch('')
+                  setFilters(EMPTY_FILTERS)
+                  setPage(1)
+                }}
+              >
+                Temizle
+              </Button>
+              <ExportButtons resource="personnel" params={activeParams} fileBase="personel-listesi" />
             </div>
           </div>
 
@@ -213,9 +301,16 @@ export default function PersonnelPage() {
               </Form.Group>
               <Form.Group className="col-6">
                 <Form.Label>Pozisyon</Form.Label>
-                <Form.Select required value={form.position_id} onChange={setField('position_id')}>
-                  <option value="">Seçiniz…</option>
-                  {positions.map((pos) => (
+                <Form.Select
+                  required
+                  value={form.position_id}
+                  onChange={setField('position_id')}
+                  disabled={!form.department_id}
+                >
+                  <option value="">
+                    {form.department_id ? 'Seçiniz…' : 'Önce departman seçiniz'}
+                  </option>
+                  {departmentPositions.map((pos) => (
                     <option key={pos.id} value={pos.id}>{pos.name}</option>
                   ))}
                 </Form.Select>
@@ -250,6 +345,12 @@ export default function PersonnelPage() {
         message={`"${deleting?.full_name}" kaydını silmek istediğinize emin misiniz?`}
         onConfirm={handleDelete}
         onCancel={() => setDeleting(null)}
+      />
+
+      <PersonnelImportModal
+        show={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={load}
       />
     </>
   )

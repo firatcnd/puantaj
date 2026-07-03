@@ -17,11 +17,28 @@
   --bs-dark-rgb: 30, 32, 25;
   --bs-body-bg: var(--surface);
   --bs-body-color: var(--ink);
+
+  /* Tema-duyarlı yüzey değişkenleri (koyu modda override edilir) */
+  --app-bg: var(--surface);
+  --app-card-bg: #ffffff;
+  --app-text: var(--ink);
+}
+
+/* Koyu tema: palet korunur, yüzeyler koyulaşır */
+[data-bs-theme='dark'] {
+  --app-bg: #16181c;
+  --app-card-bg: #23262b;
+  --app-text: #e9e7e2;
+  --bs-body-bg: #16181c;
+  --bs-body-color: #e9e7e2;
+  --teal: #6d959a;
+  --teal-dark: #5a7d81;
+  --bs-primary: var(--teal);
 }
 
 body {
-  background-color: var(--surface);
-  color: var(--ink);
+  background-color: var(--app-bg);
+  color: var(--app-text);
 }
 
 /* --- Butonlar --- */
@@ -52,13 +69,23 @@ body {
   --bs-btn-hover-border-color: #d4b13a;
 }
 
-/* --- Sidebar --- */
-.app-sidebar {
-  background-color: var(--charcoal);
-  color: var(--stone);
+/* --- Sidebar (floating bubble) --- */
+.app-shell {
   min-height: 100vh;
-  width: 240px;
+}
+
+.app-sidebar {
+  background: linear-gradient(180deg, var(--charcoal) 0%, var(--ink) 100%);
+  color: var(--stone);
+  width: 250px;
   flex-shrink: 0;
+  margin: 1rem 0 1rem 1rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px rgba(30, 32, 25, 0.35);
+  position: sticky;
+  top: 1rem;
+  height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 .app-sidebar .brand {
@@ -68,32 +95,59 @@ body {
 }
 
 .app-sidebar .brand .bi {
-  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--gold);
+  color: var(--ink);
+  font-size: 1.2rem;
 }
 
 .app-sidebar .nav-link {
   color: var(--stone);
-  border-radius: 0.5rem;
+  border-radius: 999px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.7rem;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.app-sidebar .nav-link .bi {
+  font-size: 1.05rem;
 }
 
 .app-sidebar .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: #fff;
+  transform: translateX(3px);
 }
 
 .app-sidebar .nav-link.active {
   background-color: var(--gold);
   color: var(--ink);
   font-weight: 600;
+  box-shadow: 0 4px 12px rgba(226, 192, 68, 0.35);
+}
+
+/* Alt kullanıcı kutusu da bubble */
+.app-sidebar .user-box {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+  padding: 0.6rem 0.75rem;
 }
 
 /* --- Kartlar / tablolar --- */
 .card {
   border: none;
+  background-color: var(--app-card-bg);
   box-shadow: 0 1px 3px rgba(30, 32, 25, 0.1);
+}
+
+[data-bs-theme='dark'] .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .stat-card .stat-icon {
@@ -129,8 +183,10 @@ body {
   }
 
   .app-sidebar {
-    width: 100%;
-    min-height: auto;
+    width: auto;
+    margin: 0.75rem;
+    position: static;
+    height: auto;
   }
 
   .app-sidebar .nav {
